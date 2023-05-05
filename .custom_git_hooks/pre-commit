@@ -1,0 +1,10 @@
+#!/bin/sh
+
+current_tag=$(git describe --tags 2> /dev/null )
+if [ $? -eq 0 ] ; then
+  echo "${current_tag}" >> version.info ;
+  git add version.info version.info
+else
+  echo "NO TAGS, TAGS REQUIRED FOR COMMIT" ;
+  exit 1
+fi

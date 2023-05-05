@@ -2,6 +2,10 @@ import os
 
 cwd = os.path.dirname(os.path.abspath(__file__))
 
+with open(os.path.join(os.path.dirname(cwd), "version.info"), "r") as f:
+    transpiler_version = f.read()
+
+
 def boolean_branch_to_c(branch, line_index):
     if branch[0] == "NEGATE":
         return f" ! ({boolean_branch_to_c(branch[1], line_index)})"
@@ -105,7 +109,7 @@ def line_to_c_initialization(line, line_index):
     return answers
 
 
-def generate_c_code(lines):
+def generate_c_code(lines, filename):
 
     indexes = [x[0] for x in lines]
     functions = "\n".join([line_to_c_function(line, indexes) for line in lines])
@@ -115,7 +119,9 @@ def generate_c_code(lines):
         template = f.read()
 
     # Will improve later
-    new_code = template.replace("// #define USING_WEIGHTED_RANDOM", f"#define USING_WEIGHTED_RANDOM False")
+    new_code = template.replace("// <version>", f"{transpiler_version}")
+    new_code = new_code.replace("// <filename>", f"{filename}")
+    new_code = new_code.replace("// #define USING_WEIGHTED_RANDOM", f"#define USING_WEIGHTED_RANDOM False")
     new_code = new_code.replace("// #define TOTAL_LINES", f"#define TOTAL_LINES {len(lines)}")
     new_code = new_code.replace("//<<<LINES>>>", functions)
     new_code = new_code.replace("//<<<LINES_DEF>>", initializations)
@@ -127,4 +133,4 @@ if __name__ == "__main__":
         from wparser.whenever_parser import code_to_tree
 
         tree = code_to_tree(example_code2, "test2", picklefy=False)
-        print(generate_c_code(tree))
+        print(generate_c_code(tree, "test2"))

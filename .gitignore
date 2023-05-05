@@ -1,0 +1,6 @@
+**/__pycache__
+.git/**
+.idea/**
+venv/**
+wparser/parser.out
+wparser/parsetab.py

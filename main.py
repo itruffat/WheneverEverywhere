@@ -30,7 +30,7 @@ if __name__ == '__main__':
     if mode == "run":
         interprete_tree(tree)
     elif mode == "c":
-        code = generate_c_code(tree)
+        code = generate_c_code(tree, os.path.basename(file_path))
         print(code)
         save = input("Do you want to save to file? (y/N)")
         if save:

@@ -20,9 +20,13 @@ or
 
      python3 main.py c <filepath>
 
+## Dev
+
+    git config --local core.hooksPath .custom_git_hooks/
+
 ## TODO
 
-* "Read" is still not implemented in C, need to get that going.
+* "Read" is still not implemented, need to get that going.
 * Make a more direct way of transpiling, don't relay on the user knowing how to compile C.
 * 64-bits mode in C is not working either, the limit of an C int for values may be too low.
 * Improve all the quick-n-dirty snippets, including IO handling, templating, logging, etc.
