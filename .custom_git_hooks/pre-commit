@@ -2,8 +2,18 @@
 
 current_tag=$(git describe --tags 2> /dev/null )
 if [ $? -eq 0 ] ; then
+  # UPDATE VERSION
   echo -n "${current_tag}" > version.info ;
-  git add version.info version.info
+  git add version.info
+  # UPDATE EXAMPLE CODE
+  . venv/Scripts/activate
+  for file in $( cd example_whenever_codes && ls | grep "\.txt" ) ; do
+    source="example_whenever_codes/${file}"
+    target="example_whenever_codes/to_c/$( basename ${file%.*} ).c"
+    echo ${target}
+    python3 main.py c ${source} ${target}
+    git add ${target}
+  done
 else
   echo "NO TAGS, TAGS REQUIRED FOR COMMIT" ;
   exit 1
