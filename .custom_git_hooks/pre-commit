@@ -11,7 +11,7 @@ if [ $? -eq 0 ] ; then
     source="example_whenever_codes/${file}"
     target="example_whenever_codes/to_c/$( basename ${file%.*} ).c"
     echo ${target}
-    python3 main.py c ${source} ${target}
+    PYTHON_HOT_LOAD_VENV=1 python3 main.py c ${source} ${target}
     git add ${target}
   done
 else
