@@ -22,11 +22,16 @@ or
 
 ## Dev
 
+Versioning should be written in 'version.info' and match the tags. For that one can use 
+the hook script present in this repo:
+
     git config --local core.hooksPath .custom_git_hooks/
 
 ## TODO
 
-* "Read" is still not implemented, need to get that going.
-* Make a more direct way of transpiling, don't relay on the user knowing how to compile C.
+* Make a more direct way of compiling, don't relay on the user knowing how to transpile  
+ from C.
+* Read in C works slightly different than in python. (it assumes that the final '\n' is a 
+character and not the end of the line)
 * 64-bits mode in C is not working either, the limit of an C int for values may be too low.
 * Improve all the quick-n-dirty snippets, including IO handling, templating, logging, etc.

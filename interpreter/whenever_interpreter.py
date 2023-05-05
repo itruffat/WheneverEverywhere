@@ -47,8 +47,8 @@ def resolve_numbers(array):
         else:
             return active_lines[count_line]
     else:
-        print(array)
-        report_error("Unknown Error")
+        print(array[0])
+        report_error("Unknown Error", 2)
 
 def resolve_boolean(array):
     if array[0] == "NEGATE":
@@ -76,7 +76,7 @@ def resolve_strings(array):
         if string[0] == "PURE_STRING":
             new_arrray.append(string[1])
         elif string[0] == "UNICODE_2_CHAR":
-            number = resolve_numbers([string[1]])
+            number = resolve_numbers(string[1])
             new_arrray.append(chr(number))
         elif string[0] == "NUMBER_2_STRING":
             number = resolve_numbers(string[1])

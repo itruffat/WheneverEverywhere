@@ -66,7 +66,7 @@ def string_branch_to_c(string, line_index):
     if string[0] == "PURE_STRING":
         return [f"\"%s\"", '\"'.join(["",string[1].replace('\"', '\\\"'),""])]
     elif string[0] == "UNICODE_2_CHAR":
-        return [f"\"%c\"", string[1]]
+        return [f"\"%c\"", number_branch_to_c(string[1], line_index)]
     elif string[0] == "NUMBER_2_STRING":
         return [f"\"%llu\"", number_branch_to_c(string[1], line_index)]
     else:

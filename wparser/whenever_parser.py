@@ -252,7 +252,7 @@ def numerable_process(t):
             newt = ("TIMES", ("PURE_NUMBER", -1), t[2])
     elif (len(t) == 2):
         if t.slice[1].type == "READ":
-            newt = (t.slice[1].type)
+            newt = (t.slice[1].type,)
         else:
             newt = ("PURE_NUMBER", int(t[1]))
     else:

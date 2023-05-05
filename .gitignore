@@ -4,3 +4,4 @@
 venv/**
 wparser/parser.out
 wparser/parsetab.py
+output.c

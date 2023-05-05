@@ -17,6 +17,13 @@ if __name__ == '__main__':
     if mode not in ["run", "c"]:
         io.report_error("Invalid mode, use run/c", 2)
 
+    if len(sys.argv) > 3:
+        save = True
+        output_name = sys.argv[3]
+    else:
+        save = False
+        output_name = "output.c"
+
     file_path = sys.argv[2]
 
     if not os.path.exists(file_path):
@@ -31,10 +38,14 @@ if __name__ == '__main__':
         interprete_tree(tree)
     elif mode == "c":
         code = generate_c_code(tree, os.path.basename(file_path))
+
         print(code)
-        save = input("Do you want to save to file? (y/N)")
+
+        if not save:
+            save = input("Do you want to save to file? (y/N)")
+
         if save:
-            with open("output.c", 'w') as file:
+            with open(output_name, 'w') as file:
                 file.write(code)
     else:
         io.report_error("unknown mode", 2)
