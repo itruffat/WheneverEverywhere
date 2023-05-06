@@ -1,8 +1,4 @@
 import os, sys
-
-if os.getenv("PYTHON_HOT_LOAD_VENV", default=0) == 1: # This line allows the use without having to activate the venv
-    exec(open("venv/Scripts/activate_this.py").read(), {'__file__': "venv/Scripts/activate_this.py"})
-
 from wparser.whenever_parser import code_to_tree
 from interpreter.whenever_interpreter import interprete_tree
 from c_transpiler.whenver_c_transpiler import generate_c_code
