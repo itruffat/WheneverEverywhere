@@ -115,7 +115,7 @@ def generate_c_code(lines, filename):
     functions = "\n".join([line_to_c_function(line, indexes) for line in lines])
     initializations= "\n".join(["\n".join(line_to_c_initialization(line,indexes)) for line in lines])
 
-    with open(os.path.join(cwd,"template.c"), "r") as f:
+    with open(os.path.join(cwd, "template.c"), "r") as f:
         template = f.read()
 
     # Will improve later
@@ -129,8 +129,8 @@ def generate_c_code(lines, filename):
     return new_code
 
 if __name__ == "__main__":
-        from example_whenever_codes.example_whenever_code import example_code2
-        from wparser.whenever_parser import code_to_tree
+        from whenever_examples.example_whenever_code import example_code2
+        from whenever_parser.whenever_parser import code_to_tree
 
         tree = code_to_tree(example_code2, "test2", picklefy=False)
         print(generate_c_code(tree, "test2"))

@@ -297,7 +297,7 @@ def load_tree(path):
 
 if __name__ == "__main__":
     raise Exception("Nope")
-    from example_whenever_codes.example_whenever_code import example_code, example_code2, example_code3
+    from whenever_examples.example_whenever_code import example_code, example_code2, example_code3
     code_to_tree(example_code, "test")
     code_to_tree(example_code2, "test2")
     code_to_tree(example_code3, "test3")

@@ -2,8 +2,9 @@
 .git/**
 .idea/**
 venv/**
-wparser/parser.out
-wparser/parsetab.py
+src/whenever_parser/parser.out
+src/whenever_parser/parsetab.py
 output.c
+src/output.c
 .custom_git_hooks/activator.custom
 .custom_git_hooks/executioner.custom

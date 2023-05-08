@@ -29,10 +29,15 @@ if [ $? -eq 0 ] ; then
 
   . "${activator_exe}" # activate
 
-  for file in $( cd example_whenever_codes && ls | grep "\.txt" ) ; do
-    source="example_whenever_codes/${file}"
-    target="example_whenever_codes/to_c/$( basename ${file%.*} ).c"
-    ${python3_exe} main.py c "${source}" "${target}" > /dev/null 2>&1
+  cd "src" || ( echo "Could not find source directory" ; exit 5 )
+  examples_dir=../whenever_examples
+  if [ ! -d "${examples_dir}" ] ; then echo "Can't find examples" ; exit 6 ; fi
+
+  for file in $( cd "${examples_dir}" && ls | grep "\.txt" ) ; do
+    source="${examples_dir}/${file}"
+    target="${examples_dir}/to_c/$( basename ${file%.*} ).c"
+    "../${python3_exe}" "main.py" c "${source}" "${target}"
+    #"../${python3_exe}" "main.py" c "${source}" "${target}" > /dev/null 2>&1
     if [ $? -ne 0 ] ; then echo "There was an error compiling '${source}', exiting " ; exit 3 ; fi
     git add "${target}"
   done

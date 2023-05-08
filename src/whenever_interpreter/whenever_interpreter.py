@@ -1,5 +1,5 @@
 from random import choice
-from interpreter.QnDio import give_output, get_input, report_error
+from whenever_interpreter.QnDio import give_output, get_input, report_error
 
 inputs = []
 
@@ -138,8 +138,8 @@ def interprete_tree(tree):
 
 
 if __name__ == "__main__":
-        from example_whenever_codes.example_whenever_code import example_code2
-        from wparser.whenever_parser import code_to_tree, load_tree
+        from whenever_examples.example_whenever_code import example_code2
+        from whenever_parser.whenever_parser import code_to_tree, load_tree
         code_to_tree(example_code2, "test2")
         tree = load_tree("test2")
         interprete_tree(tree)
