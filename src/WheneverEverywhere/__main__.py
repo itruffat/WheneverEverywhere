@@ -1,8 +1,8 @@
 import os, sys
-from whenever_parser.whenever_parser import code_to_tree
-from whenever_interpreter.whenever_interpreter import interprete_tree
-from whenever_c_transpiler.whenver_c_transpiler import generate_c_code
-import whenever_interpreter.QnDio as io
+from WheneverEverywhere.whenever_parser.whenever_parser import code_to_tree
+from WheneverEverywhere.whenever_interpreter.whenever_interpreter import interprete_tree
+from WheneverEverywhere.whenever_c_transpiler.whenver_c_transpiler import generate_c_code
+import WheneverEverywhere.whenever_interpreter.QnDio as io
 
 io.output_to_file = False
 io.output_file = "output.txt"

@@ -1,5 +1,5 @@
 from random import choice
-from whenever_interpreter.QnDio import give_output, get_input, report_error
+from WheneverEverywhere.whenever_interpreter.QnDio import give_output, get_input, report_error
 
 inputs = []
 

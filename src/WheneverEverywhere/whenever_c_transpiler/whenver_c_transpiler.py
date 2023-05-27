@@ -2,7 +2,7 @@ import os
 
 cwd = os.path.dirname(os.path.abspath(__file__))
 
-with open(os.path.join(os.path.dirname(cwd), "version.info"), "r") as f:
+with open(os.path.join(os.path.dirname(cwd), "../..", "version.info"), "r") as f:
     transpiler_version = f.read()
 
 

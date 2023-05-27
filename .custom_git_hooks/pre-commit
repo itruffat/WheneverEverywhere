@@ -36,8 +36,7 @@ if [ $? -eq 0 ] ; then
   for file in $( cd "${examples_dir}" && ls | grep "\.txt" ) ; do
     source="${examples_dir}/${file}"
     target="${examples_dir}/to_c/$( basename ${file%.*} ).c"
-    "../${python3_exe}" "main.py" c "${source}" "${target}"
-    #"../${python3_exe}" "main.py" c "${source}" "${target}" > /dev/null 2>&1
+    PYTHONPATH=. "../${python3_exe}" -m "WheneverEverywhere" c "${source}" "${target}"
     if [ $? -ne 0 ] ; then echo "There was an error compiling '${source}', exiting " ; exit 3 ; fi
     git add "${target}"
   done
