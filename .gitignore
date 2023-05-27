@@ -8,3 +8,8 @@ output.c
 src/output.c
 .custom_git_hooks/activator.custom
 .custom_git_hooks/executioner.custom
+src/WheneverEverywhere.egg-info/dependency_links.txt
+src/WheneverEverywhere.egg-info/PKG-INFO
+src/WheneverEverywhere.egg-info/SOURCES.txt
+src/WheneverEverywhere.egg-info/top_level.txt
+dist/WheneverEverywhere-0.0.0a1.tar.gz

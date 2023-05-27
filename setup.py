@@ -9,11 +9,12 @@ setup(
     name='WheneverEverywhere',
     version=version,
     author='itruffat',
-    description='',
-    long_description='',
+    description='A python-interpreter and compiler for the Whenever language.',
+    long_description='A python-interpreter and compiler for the Whenever language, allowing the user to run it' +
+                     'on python or transpile it into C code for latter merging',
     long_description_content_type='text/markdown',
     url='https://github.com/itruffat/WheneverEverywhere',
-    packages=['WheneverEverywhere', 'WheneverEverywhere.whenever_parser', 'WheneverEverywhere.whenever_interpreter'
+    packages=['WheneverEverywhere', 'WheneverEverywhere.whenever_parser', 'WheneverEverywhere.whenever_interpreter',
                 'WheneverEverywhere.whenever_c_transpiler', 'WheneverEverywhere.whenever_interpreter'],
     package_dir={'': 'src'},
     package_data={
