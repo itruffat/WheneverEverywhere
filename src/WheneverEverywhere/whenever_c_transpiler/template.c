@@ -5,6 +5,7 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <malloc.h>
 #include <ctype.h>
 
@@ -12,18 +13,133 @@
 // DEFINITIONS
 //
 
-#ifndef True
-    typedef int bool ;
-    #define True 1
-    #define False 0
+#ifndef TypeDefinitions
+#define TypeDefinitions
+typedef int bool ;
+#define True 1
+#define False 0
+typedef unsigned int uint ;
+typedef unsigned long long llu ;
+typedef long long ll ;
 #endif
 
-#ifndef USING_WEIGHTED_RANDOM
-    // #define USING_WEIGHTED_RANDOM
+#ifndef ArithmeticDefinitions
+#define ArithmeticDefinitions
+// #define USING_64_BITS_TRACKING <X>
+// #define USE_LL_IN_OPERATIONS <X>
 #endif
 
-#ifndef TOTAL_LINES
-    // #define TOTAL_LINES
+#ifndef ErrorHandlingAndDebuggingBehaviour
+#define ErrorHandlingAndDebuggingBehaviour
+// #define SKIP_ERRORS <X>
+// #define DEBUGGING <X>
+// #define DEBUGGING_PATH "<X>"
+#endif
+
+#ifndef TranspiledCodeInfo
+#define TranspiledCodeInfo
+// #define TOTAL_LINES <X>
+#endif
+
+/// DEBUGGING
+
+#if DEBUGGING
+
+FILE *fptr;
+
+int start_log_if_debugging(){
+    fptr = fopen( DEBUGGING_PATH , "w+") ;
+    if (fptr == NULL){
+        fprintf( stderr, "Error creating/opening log file.\n");
+        exit(1);
+    }
+    return 0;
+}
+
+#define debug_log(...) fprintf(fptr, __VA_ARGS__); fflush(fptr);
+
+int close_log_if_debugging() {return fclose(fptr);}
+
+#else // NOT_DEBUGGING
+#define start_log_if_debugging() // EMPTY DEF
+#define debug_log(...) // EMPTY DEF
+#define close_log_if_debugging() // EMPTY DEF
+#endif
+
+
+// ERRORS HANDLER
+
+
+#if SKIP_ERRORS
+void raise_error(int error_number){} // EMPTY DEF
+
+#else // NOT_SKIP_ERRORS
+
+#define case_error(i, e) case i: fprintf( stderr, e) ; break;
+
+void raise_error(int error_number){
+    fprintf( stderr, "ERROR ");
+    debug_log("~~~~~~~\n");
+    debug_log("!!ERROR: %d", error_number);
+    switch(error_number){
+       case 1: fprintf( stderr, "(INNER: INVALID ACTIVE LINE)"); break;
+       case 2: fprintf( stderr, "(INNER: INVALID LINE POSITION)"); break;
+       case 3: fprintf( stderr, "(INNER: LINE QUANTITY OVERFLOW)"); break;
+       case 4: fprintf( stderr, "(MATH: SUM OVERFLOW/UNDERFLOW)"); break;
+       case 5: fprintf( stderr, "(MATH: MINUS OVERFLOW/UNDERFLOW)"); break;
+       case 6: fprintf( stderr, "(MATH: TIMES OVERFLOW/UNDERFLOW)"); break;
+       case 7: fprintf( stderr, "(MATH: DIV BY 0)"); break;
+       default: fprintf( stderr, "(?)");
+    }
+    fprintf( stderr, "\n");
+    close_log_if_debugging();
+    exit(error_number);
+}
+#endif
+
+
+/// ARITHMETIC
+
+#if USE_LL_IN_OPERATIONS
+
+static inline ll __sum(ll X, ll Y, uint error_id){
+    ll sum = X+Y;
+    if(X>=0 && Y>=0){
+        if(sum < X || sum < Y) raise_error(error_id);
+    }else if(X<=0 && Y<=0){
+        if(sum > X || sum > Y) raise_error(error_id);
+    }else if(X>=0){ // Y<0
+        if(sum > X || sum < Y) raise_error(error_id);
+    }else{ // X<0 && Y>0
+        if(sum < X || sum > Y) raise_error(error_id);
+    }
+    return sum;
+}
+
+ll _add(ll X, ll Y){
+    return __sum(X,Y,4);
+}
+
+ll _minus(ll X, ll Y){
+    ll Y2 = -1 * Y; // Just reverse the symbol and do an addition
+    if( (Y + Y2) != 0 ) raise_error(5); // Incredibly border case of max_long, might be unnecessary
+    return __sum(X, Y2, 5);
+}
+
+#define _times(X, Y) (X * Y) // Need to redefine to check overflows
+
+ll _divide(ll X, ll Y){
+    if(Y == 0) raise_error(7);
+    return X/Y;
+}
+
+#else // USE_DEFAULT
+
+#define _add(X,Y) (X + Y)
+#define _minus(X,Y) (X - Y)
+#define _times(X, Y) (X * Y)
+#define _divide(X,Y) (X/Y)
+
 #endif
 
 
@@ -31,64 +147,65 @@
 // INPUT HANDLER
 //
 
-int char_buffer = EOF;
-int zero = '0';
-int LINE_FEED = '\n';
+const int LINE_FEED = '\n';
+const int NUMERIC_CHAR_OFFSET = '0';
+const int EMPTY_BUFFER = -1;
 
-int get_input_it(bool start, int cumulative) {
-    int answer;
-    if(char_buffer != EOF && char_buffer != LINE_FEED) {
-        answer = char_buffer;
-        char_buffer = EOF;
-    }else{
-        int c = getchar();
-        if (!isdigit(c)) {
-            if(start){
-                answer = c;
-            }else{
-                char_buffer = c;
-                answer = -2;
-            }
-        } else {
-            int decimal = c - zero;
-            cumulative *= 10;
-            cumulative += decimal;
-            int next = get_input_it(False, cumulative);
-            if(next == -2){
-                answer = cumulative;
-            }else{
-                answer = next;
-            }
-        }
-    }
-    return answer;
-}
-
+int char_buffer = EMPTY_BUFFER;
 int get_input() {
-    return get_input_it(True, 0);
+    int answer = 0;
+
+    // EMPTY BUFFER IF NOT EMPTY
+    if( char_buffer != EOF && char_buffer != LINE_FEED && char_buffer != EMPTY_BUFFER ) {
+        answer = char_buffer;
+        char_buffer = EMPTY_BUFFER;
+        return answer;
+    }
+
+    // GET INPUT
+    int next_char = getchar();
+
+    // IF WE RECEIVE A NON-NUMERIC ASCII CHAR, RETURN IT
+    if(!isdigit(next_char)) return next_char;
+
+    // PROCESS WHOLE NUMBER
+    do{
+        answer *= 10; // MULTIPLY FOR 10 TO MOVE PREVIOUS ANSWER ONE SPACE TO THE LEFT
+        answer += next_char - NUMERIC_CHAR_OFFSET;
+        next_char = getchar();
+    } while(isdigit(next_char));
+
+    // BUFFER GETS USED TO GET LEFTOVER CHAR IN NEXT RUN
+    char_buffer = next_char;
+
+    return answer;
+
 }
+
+
 
 //
 // 64BIT RANDOM
 //
 
-#if USING_WEIGHTED_RANDOM
-    // This could really improve, code from here
-    // https://stackoverflow.com/questions/33010010/how-to-generate-random-64-bit-unsigned-integer-in-c
-    #ifndef RAND_MAX_WIDTH
-        #define IMAX_BITS(m) ((m)/((m)%255+1) / 255%255*8 + 7-86/((m)%255+12))
-        #define RAND_MAX_WIDTH IMAX_BITS(RAND_MAX)
-        _Static_assert((RAND_MAX & (RAND_MAX + 1u)) == 0, "RAND_MAX not a Mersenne number");
+#if USING_64_BITS_TRACKING
+#ifndef RAND_MAX_WIDTH
+// This could really improve, code from here:
+//     https://stackoverflow.com/questions/33010010/how-to-generate-random-64-bit-unsigned-integer-in-c
+#define IMAX_BITS(m) ((m)/((m)%255+1) / 255%255*8 + 7-86/((m)%255+12))
+#define RAND_MAX_WIDTH IMAX_BITS(RAND_MAX)
+_Static_assert((RAND_MAX & (RAND_MAX + 1u)) == 0, "RAND_MAX not a Mersenne number");
 
-        unsigned long long rand64() {
-            unsigned long long r = 0;
-            for (int i = 0; i < 64; i += RAND_MAX_WIDTH) {
-                r <<= RAND_MAX_WIDTH;
-                r ^= (unsigned) rand();
-            }
-        return r;
-        }
-    #endif
+llu rand64() {
+    llu r = 0;
+    for (int i = 0; i < 64; i += RAND_MAX_WIDTH) {
+        r <<= RAND_MAX_WIDTH;
+        r ^= (unsigned) rand();
+    }
+    return r;
+}
+
+#endif
 #endif
 
 //
@@ -99,83 +216,127 @@ typedef struct Line Line;
 typedef struct StackCount StackCount;
 
 struct Line {
-    int line_number;
+    uint line_number;
     void (*func) (void);
 };
 
 struct StackCount {
-    int line_number;
-    unsigned long long count;
+    uint line_number;
+//    #if USE_LL_IN_OPERATIONS
+//    ll count;
+//    #else // NOT_USE_LL_IN_OPERATIONS
+    llu count;
+//    #endif
 };
 
 Line lines [TOTAL_LINES];
 StackCount executionStack [TOTAL_LINES];
 
+#if DEBUGGING
+void debug_log_stack(){
+    for(uint i = 0; i< TOTAL_LINES; i++)
+//        #if USE_LL_IN_OPERATIONS
+//        debug_log("|%u:%ll| ", executionStack[i].line_number, executionStack[i].count);
+//        #else // NOT_USE_LL_IN_OPERATIONS
+        debug_log("|%u:%llu| ", executionStack[i].line_number, executionStack[i].count);
+//        #endif
+    debug_log("\n");
+}
+#else // NOT_DEBUGGING
+#define debug_log_stack() // EMPTY DEF
+#endif
+
 //
 // STRUCT FUNCTIONS
 //
 
-#if USING_WEIGHTED_RANDOM
-    unsigned long long get_active_lines(){
-        unsigned long long long_count = 0;
-        for (unsigned int i = 0; i < TOTAL_LINES; i++) {
-            long_count += executionStack[i].count;
-        }
-        return long_count;
+#if USING_64_BITS_TRACKING
+llu get_active_lines(){
+    llu long_count = 0;
+    for (uint i = 0; i < TOTAL_LINES; i++) {
+        long_count += executionStack[i].count;
     }
-#else
-    int get_active_lines(){
-        int count = 0;
-        for (unsigned int i = 0; i < TOTAL_LINES; i++) {
-            if(executionStack[i].count > 0) count += 1;
-        }
-        return count;
-    }
-#endif
-
-#if USING_WEIGHTED_RANDOM
-    int get_position_of_active_line(unsigned long long active_line){
-        int i = 0;
-        while( (active_line > 0) && (i < TOTAL_LINES) ){
-            active_line -= executionStack[i].count;
-            if(active_line > 0) i += 1;
-        };
-        if(i == TOTAL_LINES) i = -1;
-        return i;
-    }
-#else
-    int get_position_of_active_line(int active_line){
-        int i = 0;
-        while( (active_line > 0) && (i < TOTAL_LINES) ){
-            if(executionStack[i].count > 0) active_line -= 1;
-            if(active_line > 0) i += 1;
-        };
-        if(i == TOTAL_LINES) i = -1;
-        return i;
-    }
-#endif
-
-void change_pos_quantity(int position, long long quantity) {
-    if (executionStack[position].count + quantity < 0) {
-        executionStack[position].count = 0;
-    } else {
-        executionStack[position].count += quantity;
-    }
+    return long_count;
 }
 
-int get_line_pos(int line_number){
-    int i = 0;
-    while( (lines[i].line_number != line_number) && i < TOTAL_LINES ) i += 1;
-    if(i == TOTAL_LINES) i = -1;
+#else // NOT USING_64_BITS_TRACKING
+uint get_active_lines(){
+    // Due to memory limitations, Active lines outside of 64 bits does not mean all the lines
+    // that are active, but the cluster of lines that have more than 1 entry.
+    //
+    // This means that each line is equally likely to be chosen, no matter many entries it has.
+    // This is not consistent with Whatever behaviour, but it's good enough to test code in general.
+    uint count = 0;
+    for (uint i = 0; i < TOTAL_LINES; i++) {
+        if(executionStack[i].count > 0) count += 1;
+    }
+    return count;
+}
+#endif
+
+
+#if USING_64_BITS_TRACKING
+uint get_position_of_active_line(llu active_line){
+    uint i = 0;
+    while( (active_line > 0) && (i < TOTAL_LINES) ){
+        if( executionStack[i].count > active_line ){
+            active_line = 0;
+        }else{
+            active_line -= executionStack[i].count;
+        }
+        if(active_line > 0) i += 1;
+    };
+    if(i >= TOTAL_LINES) raise_error(1);
     return i;
 }
 
-unsigned long long get_line_quantity(int line_number){
+#else // NOT USING_64_BITS_TRACKING
+uint get_position_of_active_line(uint active_line){
+    uint i = 0;
+    while( (active_line > 0) && (i < TOTAL_LINES) ){
+        // Since outside of 64 bits we use active lines as a group of lines,
+        // we only need to reduce 1 active_line per line group.
+        if(executionStack[i].count > 0) active_line -= 1;
+        if(active_line > 0) i += 1;
+    };
+    if(i >= TOTAL_LINES) raise_error(1);
+    return i;
+}
+#endif
+
+void change_pos_quantity(uint position, long long quantity) {
+    llu new_quantity = executionStack[position].count + quantity ;
+    // This weird branching is here to detect an overflow
+    if (quantity < 0 ){
+        // Underflow raises no errors, it sets the values to 0
+        if (new_quantity > executionStack[position].count ) new_quantity = 0;
+        executionStack[position].count = new_quantity;
+    }else{
+        // Overflow raises an error
+        if ( new_quantity < executionStack[position].count ) raise_error(3);
+        executionStack[position].count = new_quantity;
+    }
+}
+
+//
+// UNUSED
+//
+
+uint get_line_pos(uint line_number){
+    uint i = 0;
+    // TODO improve this, a linear search will give terrible performance
+    while( (lines[i].line_number != line_number) && i < (TOTAL_LINES) ) i += 1;
+
+    if(i >= TOTAL_LINES) raise_error(2);
+    return i;
+}
+
+llu get_line_quantity(uint line_number){
     return executionStack[get_line_pos(line_number)].count;
 }
 
-void change_lines_quantity(int line_number, long long quantity) {
-    int position = get_line_pos(line_number);
+void change_lines_quantity(uint line_number, long long quantity) {
+    uint position = get_line_pos(line_number);
     change_pos_quantity(position, quantity);
 }
 
@@ -193,27 +354,44 @@ void change_lines_quantity(int line_number, long long quantity) {
 
 int main() {
 
-    // THESE DEFINITIONS WERE AUTOMATICALLY GENERATED
-//<<<LINES_DEF>>
+    start_log_if_debugging();
+    debug_log("Started\n");
+    debug_log("~~~~~~~\n");
 
-    #if USING_WEIGHTED_RANDOM
-        unsigned long long active_lines = TOTAL_LINES;
-    #else
-        int active_lines = TOTAL_LINES;
+    // THESE DEFINITIONS WERE AUTOMATICALLY GENERATED
+    //<<<LINES_DEF>>
+
+    #if USING_64_BITS_TRACKING
+    llu active_lines = TOTAL_LINES;
+    debug_log("ACTIVE LINES [%llu]\n", active_lines);
+
+    #else // NOT USING_64_BITS_TRACKING
+    uint active_lines = TOTAL_LINES;
+    debug_log("ACTIVE LINES [%u]\n", active_lines);
     #endif
 
     do{
-        #if USING_WEIGHTED_RANDOM
-            unsigned long long next_active_line = rand64()%(active_lines+1) ; // Not perfect but as good as it gets
-        #else
-            int next_active_line = rand()%(active_lines+1);
+
+        #if USING_64_BITS_TRACKING // Not perfect but should be good enough
+        llu next_active_line = rand64()%(active_lines+1) ;
+        debug_log("picked %llu", next_active_line);
+
+        #else // NOT USING_64_BITS_TRACKING
+        uint next_active_line = rand()%(active_lines+1);
+        debug_log("picked %u", next_active_line);
         #endif
 
-        int position = get_position_of_active_line(next_active_line);
+        uint position = get_position_of_active_line(next_active_line);
+        debug_log(" ( line %u ) -> ", lines[position].line_number);
         lines[position].func();
+        debug_log_stack();
         active_lines = get_active_lines();
 
     }while(active_lines > 0);
 
+    debug_log("~~~~~~~\n");
+    debug_log("NO ERRORS\n");
+    close_log_if_debugging();
     return 0;
+
 }

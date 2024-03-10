@@ -29,9 +29,11 @@ the hook script present in this repo:
 
 ## TODO
 
-* Make a more direct way of compiling, don't relay on the user knowing how to transpile  
- from C.
-* Read in C works slightly different than in python. (it assumes that the final '\n' is a 
-character and not the end of the line)
-* 64-bits mode in C is not working either, the limit of an C int for values may be too low.
+* Make a more direct way of compiling, not relaying on the user knowing how to compile from a C source.
+* Read in C works slightly different than in python. (it assumes that the final '\n' is a character and not EOL)
 * Improve all the quick-n-dirty snippets, including IO handling, templating, logging, etc.
+* Add ways to allow the user to choose options, such as debugging or to use LongLong instead of ints.
+* Increase performance of 64-bits random. The algorithm already grows much smaller when we have too many lines, not 
+being able get a good random is probably being a bottle-neck in an already low algorithm.
+* [MAYBE] Add a numeric value beyond UNDEFINED LONG LONG. Right now the engine has no expressive power to show the first
+100 fibonacci numbers. (gets up to 94 I believe)
