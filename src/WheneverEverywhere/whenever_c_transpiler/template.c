@@ -16,6 +16,7 @@
 #ifndef TypeDefinitions
 #define TypeDefinitions
 typedef int bool ;
+typedef int error;
 #define True 1
 #define False 0
 typedef unsigned int uint ;
@@ -71,24 +72,33 @@ int close_log_if_debugging() {return fclose(fptr);}
 
 
 #if SKIP_ERRORS
-void raise_error(int error_number){} // EMPTY DEF
+void raise_error(error error_number){} // EMPTY DEF
 
 #else // NOT_SKIP_ERRORS
 
 #define case_error(i, e) case i: fprintf( stderr, e) ; break;
 
-void raise_error(int error_number){
+#define INVALID_ACTIVE_LINE 1
+#define INVALID_LINE_POSITION 2
+#define LINE_OVERFLOW 3
+#define SUM_OVERFLOW 4
+#define MINUS_OVERFLOW 5
+#define TIMES_OVERFLOW 6
+#define DIV_ZERO 7
+
+
+void raise_error(error error_number){
     fprintf( stderr, "ERROR ");
     debug_log("~~~~~~~\n");
     debug_log("!!ERROR: %d", error_number);
     switch(error_number){
-       case 1: fprintf( stderr, "(INNER: INVALID ACTIVE LINE)"); break;
-       case 2: fprintf( stderr, "(INNER: INVALID LINE POSITION)"); break;
-       case 3: fprintf( stderr, "(INNER: LINE QUANTITY OVERFLOW)"); break;
-       case 4: fprintf( stderr, "(MATH: SUM OVERFLOW/UNDERFLOW)"); break;
-       case 5: fprintf( stderr, "(MATH: MINUS OVERFLOW/UNDERFLOW)"); break;
-       case 6: fprintf( stderr, "(MATH: TIMES OVERFLOW/UNDERFLOW)"); break;
-       case 7: fprintf( stderr, "(MATH: DIV BY 0)"); break;
+       case_error(INVALID_ACTIVE_LINE, "(INNER: INVALID ACTIVE LINE)");
+       case_error(INVALID_LINE_POSITION, "(INNER: INVALID LINE POSITION)");
+       case_error(LINE_OVERFLOW, "(INNER: LINE QUANTITY OVERFLOW)");
+       case_error(SUM_OVERFLOW, "(MATH: SUM OVERFLOW/UNDERFLOW)");
+       case_error(MINUS_OVERFLOW, "(MATH: MINUS OVERFLOW/UNDERFLOW)");
+       case_error(TIMES_OVERFLOW, "(MATH: TIMES OVERFLOW/UNDERFLOW)");
+       case_error(DIV_ZERO, "(MATH: DIV BY 0)");
        default: fprintf( stderr, "(?)");
     }
     fprintf( stderr, "\n");
@@ -102,7 +112,7 @@ void raise_error(int error_number){
 
 #if USE_LL_IN_OPERATIONS
 
-static inline ll __sum(ll X, ll Y, uint error_id){
+static inline ll __sum(ll X, ll Y, error error_id){
     ll sum = X+Y;
     if(X>=0 && Y>=0){
         if(sum < X || sum < Y) raise_error(error_id);
@@ -117,19 +127,19 @@ static inline ll __sum(ll X, ll Y, uint error_id){
 }
 
 ll _add(ll X, ll Y){
-    return __sum(X,Y,4);
+    return __sum(X,Y,SUM_OVERFLOW);
 }
 
 ll _minus(ll X, ll Y){
     ll Y2 = -1 * Y; // Just reverse the symbol and do an addition
-    if( (Y + Y2) != 0 ) raise_error(5); // Incredibly border case of max_long, might be unnecessary
-    return __sum(X, Y2, 5);
+    if( (Y + Y2) != 0 ) raise_error(MINUS_OVERFLOW); // Incredibly border case of max_long, might be unnecessary
+    return __sum(X, Y2, MINUS_OVERFLOW);
 }
 
 #define _times(X, Y) (X * Y) // Need to redefine to check overflows
 
 ll _divide(ll X, ll Y){
-    if(Y == 0) raise_error(7);
+    if(Y == 0) raise_error(DIV_ZERO);
     return X/Y;
 }
 
@@ -222,11 +232,11 @@ struct Line {
 
 struct StackCount {
     uint line_number;
-//    #if USE_LL_IN_OPERATIONS
-//    ll count;
-//    #else // NOT_USE_LL_IN_OPERATIONS
+    #if USE_LL_IN_OPERATIONS
+    ll count;
+    #else // NOT_USE_LL_IN_OPERATIONS
     llu count;
-//    #endif
+    #endif
 };
 
 Line lines [TOTAL_LINES];
@@ -235,11 +245,11 @@ StackCount executionStack [TOTAL_LINES];
 #if DEBUGGING
 void debug_log_stack(){
     for(uint i = 0; i< TOTAL_LINES; i++)
-//        #if USE_LL_IN_OPERATIONS
-//        debug_log("|%u:%ll| ", executionStack[i].line_number, executionStack[i].count);
-//        #else // NOT_USE_LL_IN_OPERATIONS
+        #if USE_LL_IN_OPERATIONS
+        debug_log("|%u:%ll| ", executionStack[i].line_number, executionStack[i].count);
+        #else // NOT_USE_LL_IN_OPERATIONS
         debug_log("|%u:%llu| ", executionStack[i].line_number, executionStack[i].count);
-//        #endif
+        #endif
     debug_log("\n");
 }
 #else // NOT_DEBUGGING
@@ -286,7 +296,7 @@ uint get_position_of_active_line(llu active_line){
         }
         if(active_line > 0) i += 1;
     };
-    if(i >= TOTAL_LINES) raise_error(1);
+    if(i >= TOTAL_LINES) raise_error(INVALID_ACTIVE_LINE);
     return i;
 }
 
@@ -299,7 +309,7 @@ uint get_position_of_active_line(uint active_line){
         if(executionStack[i].count > 0) active_line -= 1;
         if(active_line > 0) i += 1;
     };
-    if(i >= TOTAL_LINES) raise_error(1);
+    if(i >= TOTAL_LINES) raise_error(INVALID_ACTIVE_LINE);
     return i;
 }
 #endif
@@ -313,7 +323,7 @@ void change_pos_quantity(uint position, long long quantity) {
         executionStack[position].count = new_quantity;
     }else{
         // Overflow raises an error
-        if ( new_quantity < executionStack[position].count ) raise_error(3);
+        if ( new_quantity < executionStack[position].count ) raise_error(LINE_OVERFLOW);
         executionStack[position].count = new_quantity;
     }
 }
@@ -327,7 +337,7 @@ uint get_line_pos(uint line_number){
     // TODO improve this, a linear search will give terrible performance
     while( (lines[i].line_number != line_number) && i < (TOTAL_LINES) ) i += 1;
 
-    if(i >= TOTAL_LINES) raise_error(2);
+    if(i >= TOTAL_LINES) raise_error(INVALID_LINE_POSITION);
     return i;
 }
 
