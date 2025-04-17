@@ -1,0 +1,6 @@
+name: Whenever-Everywhere 
+category: Esolanguage-stuff
+skip: False
+description : |
+  This is a repository that allows the cross-compilation of the Eso Language *Whenever* into C. That way, it becomes possible to run Whenever code on any thing that has a C compiler. 
+  This approach ensures compatibility with nearly all computers and architectures, and as a result, we can run Whenever virtually everywhere!
